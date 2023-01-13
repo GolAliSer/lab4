@@ -1,0 +1,80 @@
+import java.util.*;
+
+class Player {
+
+    static int MaxVSpeed = 35; //максимальная необходимая вертикальная скорость, подбором
+    static int MaxHSpeed = 20; //максимальная необходимая горизонтальная скорость
+    static int Power; //вводим мощность, вторая искомая переменная
+    static int Rotate; //вводим угол наклона, первая искомая переменная
+    static int TrustPower = 4; //максимумальное значение мощности из условия
+    static int smallAngle = 0; //наименьший необходимый угол наклона
+    static int biggAngle = 45; //наибольший необходимый угол наклона, подбором
+    
+    public static void main(String args[]) {
+
+        Scanner in = new Scanner(System.in);
+
+        int N = in.nextInt();
+
+        int LimitedZone_beg_X = 0; //определяем начало зоны посадки по оси ОХ
+        int LimitedZone_end_X = 0; //определяем конец зоны посадки по оси ОХ
+        int LimitedZone_hight_Y = 0; //определяеи высоту зоны посадки по оси OY
+        int PredZnach_X = 0; //вводим значение предыдущего значения Х
+        int PredZnach_Y = 0; //вводим значение предыдущего значения Y
+
+        //перебором определяем границы зоны, подбирая координаты Х с одинаковым значением соответствующей координаты Y
+        for (int i = 0; i < N; i++) {
+            int landX = in.nextInt();
+            int landY = in.nextInt();
+            if (PredZnach_Y == landY) {
+                LimitedZone_beg_X = PredZnach_X;
+                LimitedZone_end_X = landX;
+                LimitedZone_hight_Y = landY;
+            } else {
+                PredZnach_X = landX;
+                PredZnach_Y = landY;
+            }
+        }
+        
+        // основной цикл
+        while (true) {
+            int X = in.nextInt();//координата Х положения лэндера
+            int Y = in.nextInt();//координата Y положение лэндера
+            int hSpeed = in.nextInt(); //the horizontal speed (in m/s), can be negative.
+            int vSpeed = in.nextInt(); //the vertical speed (in m/s), can be negative.
+            int fuel = in.nextInt(); //the quantity of remaining fuel in liters.
+            int rotate = in.nextInt(); //the rotation angle in degrees (-90 to 90).
+            int power = in.nextInt(); //the thrust power (0 to 4). 
+
+            //проверяем положение лэндера относительно зоны посадки
+            if (X > LimitedZone_beg_X && X < LimitedZone_end_X) {  //в зоне посадки
+                //условия посадки
+                if (vSpeed < -MaxVSpeed && Power < TrustPower) Power = Power + 1;  
+                if (vSpeed > -MaxVSpeed && Power > 0 && hSpeed <= MaxHSpeed && hSpeed >= -MaxHSpeed) Power = Power - 1;  
+                if (hSpeed <= MaxHSpeed && hSpeed >= -MaxHSpeed) Rotate = 0;  
+                else {  
+                    if (hSpeed < 0) Rotate = -smallAngle; 
+                    if (hSpeed > 0) Rotate = Rotate; 
+                    if (hSpeed == 0) Rotate = 0; 
+                }  
+            }  else {  //вне зоны посадки
+                if (vSpeed > (MaxVSpeed - MaxHSpeed)) Power = TrustPower - 1;  
+                else Power = TrustPower;  
+                if(Y < LimitedZone_hight_Y) {  //корректируем угол наклона с учетом высоты зоны посадки по оси OY
+                    smallAngle = 20;   //методом подбора
+                }  else {  
+                    smallAngle = 30;  //  методом подбора
+                }
+            } 
+                if (hSpeed > MaxHSpeed || hSpeed < -MaxHSpeed) { 
+                    if (hSpeed > 0) Rotate = smallAngle; //
+                    if (hSpeed < 0) Rotate = -smallAngle; //
+                    if (hSpeed == 0) Rotate = 0; //
+                } else {  //коректировка угла в сторону зоны посадки по оси ОХ
+                 if (X < LimitedZone_beg_X) Rotate = -biggAngle; //
+                 if (X > LimitedZone_end_X) Rotate = biggAngle;  //
+                }   
+            System.out.println(Rotate + " " + Power); 
+        }
+    }
+}
